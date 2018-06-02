@@ -214,7 +214,7 @@ def mine():
     blockchain.new_transaction(
         sender="0",
         recipient=node_identifier,
-        ver=1,
+        ver=0,
         url="initial"
     )
 
