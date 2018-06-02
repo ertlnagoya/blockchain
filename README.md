@@ -1,8 +1,7 @@
-# Learn Blockchains by Building One
+# Secure Update framework Using block chain technology for IoT devices 
 
 [![Build Status](https://travis-ci.org/dvf/blockchain.svg?branch=master)](https://travis-ci.org/dvf/blockchain)
 
-This is the source code for my post on [Building a Blockchain](https://medium.com/p/117428612f46). 
 
 ## Installation
 
@@ -54,18 +53,14 @@ $ docker run --rm -p 81:5000 blockchain
 $ docker run --rm -p 82:5000 blockchain
 $ docker run --rm -p 83:5000 blockchain
 ```
+## Licence
+[MIT License](https://github.com/ertlnagoya/blockchain/blob/master/LICENSE)
 
-## Installation (C# Implementation)
+## Author
+* [NGR](https://github.com/KeigoNagara)    
 
-1. Install a free copy of Visual Studio IDE (Community Edition):
-https://www.visualstudio.com/vs/
-
-2. Once installed, open the solution file (BlockChain.sln) using the File > Open > Project/Solution menu options within Visual Studio.
-
-3. From within the "Solution Explorer", right click the BlockChain.Console project and select the "Set As Startup Project" option.
-
-4. Click the "Start" button, or hit F5 to run. The program executes in a console window, and is controlled via HTTP with the same commands as the Python version.
-
+## Reference
+https://github.com/dvf/blockchain
 
 ## Contributing
 
