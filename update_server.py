@@ -9,12 +9,15 @@ import urllib.request
 HOST = "0.0.0.0"
 PORT = 33844
 
+NODE_ADDRESS = 'localhost'
+NODE_PORT = 5000
+URL = 'git@github.com:ertlnagoya/Update_Test.git'
 
 def git_clone():
     _repo_path = os.path.join('./', 'repo')
     # clone from remote
     git_repo = git.Repo.clone_from(
-        'git@github.com:ertlnagoya/Update_Test.git', _repo_path, branch='master')
+        URL, _repo_path, branch='master')
 
 
 def git_pull():
@@ -170,7 +173,7 @@ while True:
         if len(payload) == 0:
             break
         git_pull()
-        address = 'localhost' + ':' + '5000'
+        address = NODE_ADDRESS + ':' + str(NODE_PORT)
         # mine(address)
         transaction(address)
         # search
