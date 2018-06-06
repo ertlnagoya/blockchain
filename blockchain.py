@@ -1,9 +1,12 @@
+# !/usr/bin/env python3
+# coding:utf-8
+
 import hashlib
 import json
 from time import time
 from urllib.parse import urlparse
 from uuid import uuid4
-
+import ssl
 import requests
 from flask import Flask, jsonify, request
 
@@ -196,6 +199,10 @@ class Blockchain:
 # Instantiate the Node
 app = Flask(__name__)
 
+# for https
+context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+context.load_cert_chain('cert.crt', 'server_secret.key')
+
 # Generate a globally unique address for this node
 node_identifier = str(uuid4()).replace('-', '')
 
@@ -301,4 +308,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port = args.port
 
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, ssl_context=context, threaded=True, debug=True)

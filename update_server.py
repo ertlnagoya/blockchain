@@ -1,10 +1,14 @@
 # !/usr/bin/env python3
+# coding:utf-8
 
 from socket import *
 import os
 import git
 import json
 import urllib.request
+import urllib.error
+import ssl
+import requests
 
 HOST = "0.0.0.0"
 PORT = 33844
@@ -12,16 +16,22 @@ PORT = 33844
 NODE_ADDRESS = 'localhost'
 NODE_PORT = 5000
 URL = 'git@github.com:ertlnagoya/Update_Test.git'
+DIRECTORY = 'repo'
+
+# Oreore certificate
+#requests.get("https://8.8.8.8", verify = False)
+ssl._create_default_https_context = ssl._create_unverified_context
+
 
 def git_clone():
-    _repo_path = os.path.join('./', 'repo')
+    _repo_path = os.path.join('./', DIRECTORY)
     # clone from remote
     git_repo = git.Repo.clone_from(
         URL, _repo_path, branch='master')
 
 
 def git_pull():
-    repo = git.Repo('repo')
+    repo = git.Repo(DIRECTORY)
     o = repo.remotes.origin
     o.pull()
     print(o)
@@ -40,12 +50,12 @@ def recv_until(c, delim="\n"):
 
 
 def new_transaction(address):
-    address_nt = 'http://' + address + '/transactions/new'
+    address_nt = 'https://' + address + '/transactions/new'
     data_nt = {
         "sender": "d4ee26eee15148ee92c6cd394edd974e",
         "recipient": "someone-other-address",
         "ver": 2,
-        "url": "http://version.2"
+        "url": "https://version.2"
     }
     headers_nt = {
         'Content-Type': 'application/json',
@@ -64,7 +74,7 @@ def new_transaction(address):
 
 
 def mine(address):
-    address_m = 'http://' + address + '/mine'
+    address_m = 'https://' + address + '/mine'
     req = urllib.request.Request(address_m)
     try:
         with urllib.request.urlopen(req) as res:
@@ -77,11 +87,12 @@ def mine(address):
 
 
 def chain(address):
-    address_c = 'http://' + address + '/chain'
+    address_c = 'https://' + address + '/chain'
     req = urllib.request.Request(address_c)
     try:
         with urllib.request.urlopen(req) as res:
             body = res.read()
+            print(body)
             return body
     except urllib.error.HTTPError as err:
         print(err.code)
@@ -98,7 +109,7 @@ def transaction(address):
     print(chain(address))
     print("Transaction finish!!")
 
-
+'''
 def search(arg, cond):
     res = []
     if cond(arg):
@@ -121,10 +132,10 @@ def has_star_key(arg):
 
 def get_star(arg):
     return search(arg, has_star_key)
-
+'''
 
 def search_version(address):
-    sender = "d4ee26eee15148ee92c6cd394edd974e"
+    sender = "d4ee26eee15148ee92c6cd394edd974e"  # TODO
     ver = 0
     print("Search start.")
     data = json.loads(chain(address))
@@ -142,17 +153,20 @@ def search_version(address):
                     index = count
                     print(index)
                     ver = key_next['ver']
-                    print(key_next['ver'])
+                    # print(key_next['ver'])
     print(ver)
     return ver
 
-    # print(key['transactions'])
-    # namelist.sort()
-    # print(get_star(data))
-    # for attr in data:
-    # print(attr)
-    # print('chain：{}'.format(data['chain']['transaction']))
     print("Search finish.")
+
+def verify(address):
+    # search
+    ver = search_version(address)
+    print("Blockchain version: " + str(ver))
+    
+
+sslctx = ssl.create_default_context()
+sslctx.load_cert_chain('cert.crt', 'server_secret.key')
 
 
 while True:
@@ -174,9 +188,8 @@ while True:
             break
         git_pull()
         address = NODE_ADDRESS + ':' + str(NODE_PORT)
+        verify(address)
         # mine(address)
-        transaction(address)
-        # search
-        search_version(address)
+        transaction(address) 
         # print("waiting...")
     conn.close()
