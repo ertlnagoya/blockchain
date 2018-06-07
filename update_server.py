@@ -9,6 +9,10 @@ import urllib.request
 import urllib.error
 import ssl
 import requests
+from uuid import uuid4
+
+# debug
+import random
 
 HOST = "0.0.0.0"
 PORT = 33844
@@ -18,8 +22,11 @@ NODE_PORT = 5000
 URL = 'git@github.com:ertlnagoya/Update_Test.git'
 DIRECTORY = 'repo'
 
+# Generate a globally unique address for this
+sender = str(uuid4()).replace('-', '')
+
 # Oreore certificate
-#requests.get("https://8.8.8.8", verify = False)
+# requests.get("https://8.8.8.8", verify = False)
 ssl._create_default_https_context = ssl._create_unverified_context
 
 
@@ -52,10 +59,10 @@ def recv_until(c, delim="\n"):
 def new_transaction(address):
     address_nt = 'https://' + address + '/transactions/new'
     data_nt = {
-        "sender": "d4ee26eee15148ee92c6cd394edd974e",
+        "sender": sender,
         "recipient": "someone-other-address",
-        "ver": 2,
-        "url": "https://version.2"
+        "ver": random.randrange(10),
+        "url": URL
     }
     headers_nt = {
         'Content-Type': 'application/json',
@@ -92,7 +99,7 @@ def chain(address):
     try:
         with urllib.request.urlopen(req) as res:
             body = res.read()
-            print(body)
+            # print(body)
             return body
     except urllib.error.HTTPError as err:
         print(err.code)
@@ -101,12 +108,23 @@ def chain(address):
         print(err.reason)
         return -1
 
+def resolve(address):
+    address_r = 'https://' + address + '/nodes/resolve'
+    req = urllib.request.Request(address_r)
+    try:
+        with urllib.request.urlopen(req) as res:
+            body = res.read()
+            print(body)
+    except urllib.error.HTTPError as err:
+        print(err.code)
+    except urllib.error.URLError as err:
+        print(err.reason)
 
 def transaction(address):
     print("Transaction start.")
     new_transaction(address)
     mine(address)
-    print(chain(address))
+    # print(chain(address))
     print("Transaction finish!!")
 
 '''
@@ -135,13 +153,12 @@ def get_star(arg):
 '''
 
 def search_version(address):
-    sender = "d4ee26eee15148ee92c6cd394edd974e"  # TODO
     ver = 0
-    print("Search start.")
+    print("[*] Search start.")
     data = json.loads(chain(address))
-    # print(json.dumps(data, sort_keys = True, indent = 4))
+    print(json.dumps(data, sort_keys = True, indent = 4))
     keylist = data.keys()
-    print()
+    # print()
     print(keylist)
     for key in data['chain']:
         count = key['index']
@@ -151,29 +168,29 @@ def search_version(address):
                     # print(key_next)
                     # print(key_next['url'])
                     index = count
-                    print(index)
+                    # print(index)
                     ver = key_next['ver']
                     # print(key_next['ver'])
-    print(ver)
+    # print(ver)
     return ver
 
-    print("Search finish.")
+    print("[*] Search finish.")
 
 def verify(address):
     # search
     ver = search_version(address)
-    print("Blockchain version: " + str(ver))
+    print("[*] Blockchain version: " + str(ver))
     
-
+# For HTTPS conection
 sslctx = ssl.create_default_context()
 sslctx.load_cert_chain('cert.crt', 'server_secret.key')
 
 
 while True:
     if os.path.isdir("./repo"):
-        print("already exist.")
+        print("[*] already exist.")
     else:
-        print("make repo")
+        print("[*] make repo")
         # git_clone()
     s = socket(AF_INET)
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -186,10 +203,12 @@ while True:
         payload = recv_until(conn)
         if len(payload) == 0:
             break
+        print("[*] Reception: " + str(payload))
         git_pull()
         address = NODE_ADDRESS + ':' + str(NODE_PORT)
         verify(address)
         # mine(address)
         transaction(address) 
         # print("waiting...")
+        resolve(address)
     conn.close()
