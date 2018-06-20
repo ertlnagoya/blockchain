@@ -10,6 +10,7 @@ import urllib.error
 import ssl
 import requests
 from uuid import uuid4
+import hashlib
 
 # debug
 import random

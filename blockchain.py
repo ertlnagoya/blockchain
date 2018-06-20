@@ -9,7 +9,7 @@ from uuid import uuid4
 import ssl
 import requests
 from flask import Flask, jsonify, request
-import hashlib
+
 
 class Blockchain:
     def __init__(self):
@@ -35,7 +35,6 @@ class Blockchain:
             self.nodes.add(parsed_url.path)
         else:
             raise ValueError('Invalid URL')
-
 
     def valid_chain(self, chain):
         """
@@ -124,7 +123,7 @@ class Blockchain:
         self.chain.append(block)
         return block
 
-    def new_transaction(self, sender, recipient, ver, url):
+    def new_transaction(self, counter, sender, recipient, verifier):
         """
         Creates a new transaction to go into the next mined Block
 
@@ -135,10 +134,12 @@ class Blockchain:
         :return: The index of the Block that will hold this transaction
         """
         self.current_transactions.append({
-            'sender': sender,
-            'recipient': recipient,
-            'ver': ver,
-            'url': url,
+            "counter": 1,  # TODO
+            # "merkle tree": ,
+            "sender": sender,
+            "recipient": "someone-other-address",
+            # "digital signature": ,
+            "verifier": "HASH"
         })
 
         return self.last_block['index'] + 1
@@ -165,7 +166,7 @@ class Blockchain:
 
          - Find a number p' such that hash(pp') contains leading 4 zeroes
          - Where p is the previous proof, and p' is the new proof
-         
+
         :param last_block: <dict> last Block
         :return: <int>
         """
@@ -219,10 +220,12 @@ def mine():
     # We must receive a reward for finding the proof.
     # The sender is "0" to signify that this node has mined a new coin.
     blockchain.new_transaction(
+        counter=1,
+        # "merkle tree": ,
         sender="0",
         recipient=node_identifier,
-        ver=0,
-        url="initial"
+        # "digital signature": ,
+        verifier="HASH"
     )
 
     # Forge the new Block by adding it to the chain

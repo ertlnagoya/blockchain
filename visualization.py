@@ -83,7 +83,6 @@ def add(address):
         # row_timestamp=datetime.datetime.fromtimestamp(timestamp) - datetime.timedelta(hours=9)
         # timestamp = row_timestamp.strftime("%Y-%m-%dT%H:%M:%SZ")
         print("[*]write")
-        print(data)
         
         res = es.index(index="blockchain", doc_type="block", body=data)
         print(res)
