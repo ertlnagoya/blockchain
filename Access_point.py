@@ -11,6 +11,8 @@ import json
 import threading
 import time
 import random
+from datetime import datetime
+
 
 
 HOST = "0.0.0.0"
@@ -128,7 +130,7 @@ def randam_ini(payload):
 
 def make_payload(public_key, sender, NODE, INFO, r):
     payload = (str(public_key) + '-' + sender + '-' + NODE + '-'
-                + INFO + '-' + str(r))
+                + str(INFO) + '-' + str(r))
     return payload
 
 # For HTTPS conection
@@ -244,9 +246,16 @@ def verify(address):
 
 
 def client():
+    # open csv
+    dict = open_csv()
+    # print(dict)
+    for key in dict['data']:
+        VER = key['ver']
+        HASH = key['hash']
+
     # client to vender server
-    print("現在のスレッドの数: ", str(threading.activeCount()))
-    print("[%s] helohelo!!" % threading.currentThread().getName())
+    # print("現在のスレッドの数: ", str(threading.activeCount()))
+    print(threading.currentThread().getName())
     r = random.randrange(1000)
 
     # conection
@@ -297,6 +306,8 @@ def client():
         else:
             print("[*] The hash is not latest! Download start!")
             git_pull()
+            #VER = comp
+            write_csv(dict, comp, URL, HASH)
 
     else:
         print("[*] It is not latest! Download start!")
@@ -319,6 +330,8 @@ def client():
         soc.close()
 
         git_pull()
+        #VER = comp
+        write_csv(dict, ccomp, URL, HASH)
 
     
     soc.close()
@@ -326,6 +339,28 @@ def client():
     t=threading.Timer(TIME, client)
     t.start()
 
+
+def open_csv():
+    file = open("Access_point.csv", 'r')
+    dict = json.load(file)
+    # print(dict)
+    file.close()
+    return dict
+
+
+def write_csv(dict, VER, URL, HASH):
+    # dict.update(dict_add)
+    dict_add = {
+        "ver": VER,
+        "url": URL, 
+        "hash": HASH,
+        "time": datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    }
+    dict['data'].append(dict_add)
+    file = open("Access_point.csv", 'w')
+    print(dict)
+    json.dump(dict, file, indent=4)
+    file.close()
 
 while True:
     data = []
@@ -339,13 +374,21 @@ while True:
         print("[*] Default port:", VALID_PORT)
         # sys.exit()
 
-    t=threading.Thread(target=client)
-    t.start()
+    # open csv
+    dict = open_csv()
+    # print(dict)
+    for key in dict['data']:
+        VER = key['ver']
+        HASH = key['hash']
+
 
     # RSA
     public_key, private_key = generate_keys(101, 3259)
     print("public_key:", public_key)
     print("private_key:", private_key)
+
+    t=threading.Thread(target=client)
+    t.start()
 
     # conection
     s = socket(AF_INET)
@@ -356,7 +399,15 @@ while True:
     conn, addr = s.accept()
     print("[*] connection from: %s:%s" % addr)
 
+
+
     while True:
+        # open csv
+        dict = open_csv()
+        # print(dict)
+        for key in dict['data']:
+            VER = key['ver']
+            HASH = key['hash']
         # Obtains vnew and Mvnew from its database c1-1-2
         payload = conn.recv(1024)
         if len(payload) == 0:
