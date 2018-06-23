@@ -19,58 +19,16 @@
             "time": 0
         },
         {
-            "ver": 1.0,
+            "ver": 1,
             "url": "git@github.com:ertlnagoya/Update_Test.git",
             "hash": "f52d885484f1215ea500a805a86ff443",
-            "time": 0
+            "time": "2018/06/23 22:15:26"
         },
         {
-            "ver": 1.0,
+            "ver": 3.0,
             "url": "git@github.com:ertlnagoya/Update_Test.git",
             "hash": "f52d885484f1215ea500a805a86ff443",
-            "time": 0
-        },
-        {
-            "ver": 1.0,
-            "url": "git@github.com:ertlnagoya/Update_Test.git",
-            "hash": "f52d885484f1215ea500a805a86ff443",
-            "time": 0
-        },
-        {
-            "ver": 1.0,
-            "url": "git@github.com:ertlnagoya/Update_Test.git",
-            "hash": "f52d885484f1215ea500a805a86ff443",
-            "time": 0
-        },
-        {
-            "ver": 1.0,
-            "url": "git@github.com:ertlnagoya/Update_Test.git",
-            "hash": "f52d885484f1215ea500a805a86ff443",
-            "time": 0
-        },
-        {
-            "ver": 1.0,
-            "url": "git@github.com:ertlnagoya/Update_Test.git",
-            "hash": "f52d885484f1215ea500a805a86ff443",
-            "time": "2018/06/21 05:30:20"
-        },
-        {
-            "ver": 1.0,
-            "url": "git@github.com:ertlnagoya/Update_Test.git",
-            "hash": "f52d885484f1215ea500a805a86ff443",
-            "time": "2018/06/21 05:31:09"
-        },
-        {
-            "ver": 1.0,
-            "url": "git@github.com:ertlnagoya/Update_Test.git",
-            "hash": "f52d885484f1215ea500a805a86ff443",
-            "time": "2018/06/21 05:32:01"
-        },
-        {
-            "ver": 1.0,
-            "url": "git@github.com:ertlnagoya/Update_Test.git",
-            "hash": "f52d885484f1215ea500a805a86ff443",
-            "time": "2018/06/21 05:32:39"
+            "time": "2018/06/23 22:16:35"
         }
     ]
 }
