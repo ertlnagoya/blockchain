@@ -1,9 +1,16 @@
-# Secure Update framework Using block chain technology for IoT devices 
+# Secure Update framework Using blockchain for IoT devices 
 
-[![Build Status](https://travis-ci.org/dvf/blockchain.svg?branch=master)](https://travis-ci.org/dvf/blockchain)
+In recent years, the Internet of Things (IoT) equipment has become widespread, and its vulnerability is also clarified.
+Attacks that exploit the vulnerability of IoT devices for stepping stones of distributed denial of service attacks and illegal mining have also been confirmed.
+Therefore, a secure software update that can fix vulnerabilities and improve functions is required.
+In this research, based on the existing framework, we have proposed and developed a secure update framework for IoT devices utilizing the blockchain.
+By using the blockchain, the tamper-resistant and low-cost framework can be realized.
+In addition, this framework makes it possible to secondary use of data stored in blocks and load balancing of servers.
 
+## Usage
+TODO
 
-## Installation
+## Installation for blockchain function
 
 1. Make sure [Python 3.6+](https://www.python.org/downloads/) is installed. 
 2. Install [pipenv](https://github.com/kennethreitz/pipenv). 
