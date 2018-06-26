@@ -1,5 +1,7 @@
 # Secure Update framework Using blockchain for IoT devices 
 
+## About this framework
+### Abst
 In recent years, the Internet of Things (IoT) equipment has become widespread, and its vulnerability is also clarified.
 Attacks that exploit the vulnerability of IoT devices for stepping stones of distributed denial of service attacks and illegal mining have also been confirmed.
 Therefore, a secure software update that can fix vulnerabilities and improve functions is required.
@@ -7,8 +9,24 @@ In this research, based on the existing framework, we have proposed and develope
 By using the blockchain, the tamper-resistant and low-cost framework can be realized.
 In addition, this framework makes it possible to secondary use of data stored in blocks and load balancing of servers.
 
+### Program
+- blockchain.py   
+   blocchain node.   
+- IoT_dev.py   
+   Client to request to Access Point for version check.   
+- Access_point.py   
+   Server to response from IoT devices.   
+   And, Client to request to server for version check.
+- server.py   
+   Server to response from access point.  
+
 ## Usage
-TODO
+Git clone and run the prograam.   
+```
+$ python server.py    
+$ python Access_point.py [IP address](ex 0.0.0.0)
+$ python IoT_dev.py [IP address](ex 0.0.0.0)  
+```
 
 ## Installation for blockchain function
 
