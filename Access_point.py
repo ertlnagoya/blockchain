@@ -83,7 +83,7 @@ def get_git_revision_hash(dir):
     return hash
 
 
-HASH = str(get_git_revision_hash(DIRECTORY))
+HASH = str(get_git_revision_hash(DIRECTORY)).replace("b'", "").replace("'", "")
 print(get_git_revision_hash(DIRECTORY))
 METADATA = FILE_NAME + ";" + HASH + ";" + "len" + ";" + HOST
 # "file_name+file_hash+piece_length+valid_node_URL"
