@@ -18,16 +18,10 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA256
 import time
+import os
 import subprocess
 
-# label = subprocess.check_output(["git", "describe"]).strip()
-def get_git_revision_hash():
-    return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
 
-def get_git_revision_short_hash():
-    return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'])
-print(get_git_revision_hash())
-print(get_git_revision_short_hash())
 
 HOST = "0.0.0.0"
 NOMAL_PORT = 33844
@@ -45,12 +39,10 @@ DIRECTORY = 'repo'
 
 # For test
 VER = "0"
-HASH = "f52d885484f1215ea500a805a86ff443"
+# HASH = "f52d885484f1215ea500a805a86ff443"
 URL = 'git@github.com:ertlnagoya/Update_Test.git'
 FILE_NAME = 'Update_Test'
-METADATA = FILE_NAME + ";" + HASH + ";" + "len" + ";" + HOST
-# "file_name+file_hash+piece_length+valid_node_URL"
-DOWNLOAD = URL + ";" + HASH  # "file_URL+file_hash+len"
+
 
 
 # Generate a globally unique address
@@ -82,6 +74,20 @@ def git_pull():
     o.pull()
     print(o)
 
+
+def get_git_revision_hash(dir):
+    dir_name = "./" + dir
+    os.chdir(dir_name)
+    hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'])
+    os.chdir("./..")
+    return hash
+
+
+HASH = str(get_git_revision_hash(DIRECTORY))
+print(get_git_revision_hash(DIRECTORY))
+METADATA = FILE_NAME + ";" + HASH + ";" + "len" + ";" + HOST
+# "file_name+file_hash+piece_length+valid_node_URL"
+DOWNLOAD = URL + ";" + HASH  # "file_URL+file_hash+len"
 
 def recv_until(c, delim="\n"):
     res = c.recv(1024)
