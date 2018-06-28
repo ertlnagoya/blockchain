@@ -18,6 +18,16 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA256
 import time
+import subprocess
+
+# label = subprocess.check_output(["git", "describe"]).strip()
+def get_git_revision_hash():
+    return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
+
+def get_git_revision_short_hash():
+    return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'])
+print(get_git_revision_hash())
+print(get_git_revision_short_hash())
 
 HOST = "0.0.0.0"
 NOMAL_PORT = 33844

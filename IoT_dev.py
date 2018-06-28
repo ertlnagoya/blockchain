@@ -45,6 +45,20 @@ rsa = RSA.generate(2048, random_func)
 private_key = rsa.exportKey(format='PEM')
 public_key = rsa.publickey().exportKey()
 
+# Degital signature
+#message = b"hello world!"
+#key = RSA.importKey(private_key)
+#h = SHA256.new(message)
+#signature = pkcs1_15.new(key).sign(h)
+#print("署名作成", signature, int(time.time()*1000-start), 'mSec')
+
+#try:
+#    key = RSA.importKey(public_key)
+#    pkcs1_15.new(key).verify(h, signature)
+#    print("署名OK", int(time.time()*1000-start), 'mSec')
+#except (ValueError, TypeError):
+#    print("署名NG！", int(time.time()*1000-start), 'mSec')
+
 
 def git_clone():
     _repo_path = os.path.join('./', DIRECTORY)
