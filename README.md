@@ -61,7 +61,7 @@ $ pipenv install
 Make certificate for SSL connection between Acceess point and blockchain node.   
 ```
 $ openssl genrsa -aes128 2048 > server_secret.key   
-$ openssl genrsa -aes128 2048 > server_secret.key   
+$ openssl req -new -key server_secret.key > server_pub.csr   
 $ openssl x509 -in server_pub.csr -days 365000 -req -signkey server_secret.key > cert.crt   
 ```
 ## Licence
