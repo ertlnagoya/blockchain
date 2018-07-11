@@ -68,7 +68,7 @@ $ openssl x509 -in server_pub.csr -days 365000 -req -signkey server_secret.key >
 [MIT License](https://github.com/ertlnagoya/blockchain/blob/master/LICENSE)
 
 ## Author
-* [NGR](https://github.com/KeigoNagara)   
+* [Keigo Nagara](https://github.com/KeigoNagara)   
 * [Yutaka Matsubara](https://github.com/YutakaMatsubara)    
 
 ## Reference
