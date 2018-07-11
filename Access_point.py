@@ -6,7 +6,6 @@ import sys
 import urllib.request
 import ssl
 from uuid import uuid4
-from fractions import gcd
 import json
 import threading
 import random
@@ -15,12 +14,11 @@ import git
 from Crypto.PublicKey import RSA
 from Crypto import Random
 from Crypto.Cipher import PKCS1_OAEP
-from Crypto.Signature import pkcs1_15
-from Crypto.Hash import SHA256
+# from Crypto.Signature import pkcs1_15
+# from Crypto.Hash import SHA256
 import time
 import os
 import subprocess
-
 
 
 HOST = "0.0.0.0"
@@ -43,8 +41,6 @@ VER = "0"
 URL = 'git@github.com:ertlnagoya/Update_Test.git'
 FILE_NAME = 'Update_Test'
 
-
-
 # Generate a globally unique address
 sender = str(uuid4()).replace('-', '')
 
@@ -61,14 +57,22 @@ cipher = PKCS1_OAEP.new(RSA.importKey(public_key))
 ssl._create_default_https_context = ssl._create_unverified_context
 
 
+# For github
 def git_clone():
+    '''
+    git clone from URL in DIRECTORY.
+    '''
     _repo_path = os.path.join('./', DIRECTORY)
     # clone from remote
     git_repo = git.Repo.clone_from(
         URL, _repo_path, branch='master')
+    return git_repo
 
 
 def git_pull():
+    '''
+    git pull in DIRECTORY.
+    '''
     repo = git.Repo(DIRECTORY)
     o = repo.remotes.origin
     o.pull()
@@ -76,18 +80,15 @@ def git_pull():
 
 
 def get_git_revision_hash(dir):
+    '''
+    get hash of existing DIRECTORY.
+    '''
     dir_name = "./" + dir
     os.chdir(dir_name)
     hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'])
     os.chdir("./..")
     return hash
 
-
-HASH = str(get_git_revision_hash(DIRECTORY)).replace("b'", "").replace("'", "")
-print(get_git_revision_hash(DIRECTORY))
-METADATA = FILE_NAME + ";" + HASH + ";" + "len" + ";" + HOST
-# "file_name+file_hash+piece_length+valid_node_URL"
-DOWNLOAD = URL + ";" + HASH  # "file_URL+file_hash+len"
 
 def recv_until(c, delim="\n"):
     res = c.recv(1024)
@@ -103,7 +104,7 @@ def recv_until(c, delim="\n"):
 
 def randam(payload, r_before):
     '''
-    return randam nuber from payload
+    return randam nuber from payload.
     '''
     data = []
     payload = str(payload).replace("b'", "").replace("'", "")
@@ -117,7 +118,7 @@ def randam(payload, r_before):
 
 def randam_ini(payload):
     '''
-    return randam nuber from payload
+    return randam nuber from payload.
     '''
     data = []
     data = payload.split("-")
@@ -128,11 +129,6 @@ def randam_ini(payload):
 def make_payload(sender, NODE, INFO, r):
     payload = (str(sender) + '-' + str(NODE) + '-' + str(INFO) + '-' + str(r))
     return payload.encode("UTF-8")
-
-
-# For HTTPS conection
-# sslctx = ssl.create_default_context()
-# sslctx.load_cert_chain('cert.crt', 'server_secret.key')
 
 
 def new_transaction(address):
@@ -243,6 +239,10 @@ def verify(address):
 
 
 def client():
+    '''
+    It is client function to connect management server.
+    '''
+
     # open csv
     dict = open_csv()
     # print(dict)
@@ -253,24 +253,26 @@ def client():
     # client to vender server
     # print("現在のスレッドの数: ", str(threading.activeCount()))
     print(threading.currentThread().getName())
+
+    # random number for countermeasure to reply attack.
     r = random.randrange(1000)
 
     # conection
     soc = socket(AF_INET)
     soc.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     soc.connect((HOST, SERVER_PORT))
-    print("[*] Connecting to %s:%s" % (HOST, SERVER_PORT))
-    #verbose_ping(sys.argv[12)
+    print("[client] Connecting to %s:%s" % (HOST, SERVER_PORT))
+    # verbose_ping(sys.argv[12)
 
     soc.sendall(public_key)
     payload = soc.recv(1024)
-    print("[*] public_key:", payload)
+    print("[client] public_key:", payload)
     public_server_key = payload
 
-    # req_vercheck c1-1-1
+    # req_vercheck
     payload = make_payload(sender, "nomalnode", VER, r)
     cipher = PKCS1_OAEP.new(RSA.importKey(public_server_key))
-    print("[*] c1-1-1:send", payload)
+    print("[client] First send", payload)
     payload = cipher.encrypt(payload)
     soc.sendall(payload)
 
@@ -278,34 +280,34 @@ def client():
     payload = soc.recv(1024)
     cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
     payload = str(cipher.decrypt(payload))
-    print("[*] Receive from server 1: ", payload)
+    print("[client] First receive from server: ", payload)
 
     data = payload.split("-")
     r = randam(payload, r - 1)
     comp = float(data[2])
 
     if float(VER) == comp:
-        # req_verification c1-1-5
-        print("[*] Version check: req = res!")
+        # req_verification
+        print("[client] Version check: req = res!")
         payload = make_payload(sender, "nomalnode", HASH, r)
         cipher = PKCS1_OAEP.new(RSA.importKey(public_server_key))
-        print("[*] c1-1-5:send", payload)
+        print("[client] Second send", payload)
         payload = cipher.encrypt(payload)
         soc.sendall(payload)
 
         # Verifies and decrypts res_verification message,
         # and compares H(fv) and H(fvnew c1-1-8
         payload = soc.recv(1024)
-        payload = payload.decode("UTF-8")
-        payload = decrypt(payload, private_key)
-        print("[*] Receive from server 2: ", payload)
+        cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
+        payload = str(cipher.decrypt(payload))
+        print("[client] Second receive from server 2: ", payload)
         data = payload.split("-")
         # print("c1-1-8: " + data[3])
 
         if str(HASH) == str(data[2]):
-            print("[*] SAME!!")
+            print("[client] SAME!!")
         else:
-            print("[*] The hash is not latest! Download start!")
+            print("[client] The hash is not latest! Download start!")
 
             # Download from Github & data store
             git_pull()
@@ -317,22 +319,22 @@ def client():
             transaction(address)
 
     else:
-        print("[*] It is not latest! Download start!")
+        print("[client] It is not latest! Download start!")
 
-        # req_download c1-2-5
+        # Reqest for download
         r = randam(payload, r - 3)
         payload = make_payload(sender, "nomalnode", 'Download', r)
         cipher = PKCS1_OAEP.new(RSA.importKey(public_server_key))
-        print("[*] c1-2-5:send", payload)
+        print("[client] First send", payload)
         payload = cipher.encrypt(payload)
         soc.sendall(payload)
 
-        # Downloads and installs the latest firmware file 
-        # after checking res_download message c1-2-8
+        # Downloads and installs the latest firmware file
+        # after checking res_download message]
         payload = soc.recv(1024)
         cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
         payload = str(cipher.decrypt(payload))
-        print("[*] Receive from server 2: " + str(payload))
+        print("[client] Second receive from server 2: " + str(payload))
         data = payload.split("-")
         soc.close()
 
@@ -344,14 +346,18 @@ def client():
         # mine(address)
         transaction(address)
 
-    
     soc.close()
-    print("[*] Finish!!")
-    t=threading.Timer(TIME, client)
+    print("[client] Client function: Finish!!")
+
+    # Thread
+    t = threading.Timer(TIME, client)
     t.start()
 
 
 def open_csv():
+    '''
+    Read data from csv file.
+    '''
     file = open("Access_point.csv", 'r')
     dict = json.load(file)
     # print(dict)
@@ -360,10 +366,13 @@ def open_csv():
 
 
 def write_csv(dict, VER, URL, HASH):
+    '''
+    Write data to csv file.
+    '''
     # dict.update(dict_add)
     dict_add = {
         "ver": VER,
-        "url": URL, 
+        "url": URL,
         "hash": HASH,
         "time": datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     }
@@ -373,6 +382,19 @@ def write_csv(dict, VER, URL, HASH):
     json.dump(dict, file, indent=4)
     file.close()
 
+
+# For HTTPS conection (password:pass)
+# sslctx = ssl.create_default_context()
+# sslctx.load_cert_chain('cert.crt', 'server_secret.key')
+
+# define
+HASH = str(get_git_revision_hash(DIRECTORY)).replace("b'", "").replace("'", "")
+print(get_git_revision_hash(DIRECTORY))
+METADATA = FILE_NAME + ";" + HASH + ";" + "len" + ";" + HOST
+# "file_name+file_hash+piece_length+valid_node_URL"
+DOWNLOAD = URL + ";" + HASH  # "file_URL+file_hash+len"
+
+
 while True:
     data = []
     key = []
@@ -380,9 +402,9 @@ while True:
 
     if len(sys.argv) == 2:
         VALID_PORT = argv[1]
-        print("[*] Port: ", VALID_PORT)
+        print("[server] Port: ", VALID_PORT)
     else:
-        print("[*] Default port:", VALID_PORT)
+        print("[server] Default port:", VALID_PORT)
         # sys.exit()
 
     # open csv
@@ -404,12 +426,11 @@ while True:
     # conection
     s = socket(AF_INET)
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    print("[*] waiting for connection at %s:%s" % (HOST, VALID_PORT))
+    print("[server] waiting for connection at %s:%s" % (HOST, VALID_PORT))
     s.bind((HOST, VALID_PORT))
     s.listen(1)
     conn, addr = s.accept()
-    print("[*] connection from: %s:%s" % addr)
-
+    print("[server] connection from: %s:%s" % addr)
 
 
     while True:
@@ -425,42 +446,38 @@ while True:
         payload = conn.recv(1024)
         if len(payload) == 0:
             break
-        print("[*] Reception0: " + str(payload))
+        print("[server] Reception0: " + str(payload))
         conn.sendall(public_key)
         public_client_key = payload  # tuple_key(payload)
-        print("public_client_key", public_client_key)
+        print("[server]public_client_key", public_client_key)
 
         payload = conn.recv(1024)
         if len(payload) == 0:
             break
         cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
         payload = cipher.decrypt(payload)
-        print("[*] Reception1: " + str(payload))
+        print("[server] Reception1: " + str(payload))
         payload = payload.decode("UTF-8")
 
-
-        # print(type(key))
-        # print(tuple(public_key))
-        # print(type(public_key))
-
         r = randam_ini(payload)
+        
         data = payload.split("-")
 
         if str(data[1]) == "nomalnode":
             #  res_verchk c1-1-3
             payload = make_payload(sender, 'validnode', VER, r)
             cipher = PKCS1_OAEP.new(RSA.importKey(public_client_key))
-            payload = cipher.encrypt(payload)  # encrypt(payload, tuple(public_client_key))
-            #payload = payload.encode("UTF-8")
+            payload = cipher.encrypt(payload)
             conn.sendall(payload)
 
-            # Verifies and decrypts req_download message, and checks H(fvnew) c1-1-6
+            # Verifies and decrypts req_download message,
+            # and checks H(fvnew) c1-1-6
             payload = conn.recv(1024)
             if len(payload) == 0:
                 break
             cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
             payload = cipher.decrypt(payload)
-            print("[*] Reception: c1-1-6", payload)
+            print("[server] Reception: c1-1-6", payload)
 
             # es_download c1-1-7
             r = randam(payload, r-1)
@@ -469,13 +486,12 @@ while True:
             payload = cipher.encrypt(payload)
             conn.sendall(payload)
 
-            # version & hash compare
-
+            # version & hash compare: TODO
             address = NODE_ADDRESS + ':' + str(NODE_PORT)
             # verify(address)
             # mine(address)
             transaction(address)
 
-        print("[*] Finish!!")
+        print("[server] Finish!!")
 
     conn.close()

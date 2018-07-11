@@ -135,10 +135,12 @@ class Blockchain:
         """
         self.current_transactions.append({
             "counter": 1,  # TODO
-            # "merkle tree": ,
+            # "merkle tree": 
+            # "success",
             "sender": sender,
             "recipient": "someone-other-address",
             # "digital signature": ,
+            # "ver": 
             "verifier": "HASH"
         })
 
