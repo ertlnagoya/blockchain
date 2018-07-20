@@ -123,7 +123,7 @@ class Blockchain:
         self.chain.append(block)
         return block
 
-    def new_transaction(self, counter, sender, recipient, verifier):
+    def new_transaction(self, counter, success, sender, recipient, ver, verifier):
         """
         Creates a new transaction to go into the next mined Block
 
@@ -134,14 +134,14 @@ class Blockchain:
         :return: The index of the Block that will hold this transaction
         """
         self.current_transactions.append({
-            "counter": 1,  # TODO
+            "counter": counter,  # TODO
             # "merkle tree": 
-            # "success",
+            "success": success,
             "sender": sender,
-            "recipient": "someone-other-address",
+            "recipient": recipient,
             # "digital signature": ,
-            # "ver": 
-            "verifier": "HASH"
+            "ver": ver,
+            "verifier": verifier
         })
 
         return self.last_block['index'] + 1
@@ -224,9 +224,11 @@ def mine():
     blockchain.new_transaction(
         counter=1,
         # "merkle tree": ,
+        success = 1,
         sender="0",
         recipient=node_identifier,
         # "digital signature": ,
+        ver= 0,
         verifier="HASH"
     )
 
@@ -249,12 +251,12 @@ def new_transaction():
     values = request.get_json()
 
     # Check that the required fields are in the POST'ed data
-    required = ['sender', 'recipient', 'ver', 'url']
+    required = ['counter', 'success', 'sender', 'recipient', 'ver', 'verifier']
     if not all(k in values for k in required):
         return 'Missing values', 400
 
     # Create a new Transaction
-    index = blockchain.new_transaction(values['sender'], values['recipient'], values['ver'], values['url'])
+    index = blockchain.new_transaction(values['counter'], values['success'],values['sender'], values['recipient'], values['ver'], values['verifier'])
 
     response = {'message': f'Transaction will be added to Block {index}'}
     return jsonify(response), 201

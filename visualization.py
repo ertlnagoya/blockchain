@@ -56,14 +56,10 @@ def create_index():
 		    "proof": "date",
 		    "transactions": [
 		        {
-                    "counter": "data",  # TODO
-                    # "merkle tree": 
-                    "success": "data",
-                    "sender": "string",
-                    "recipient":  "string",
-                    # "digital signature": ,
-                    "ver": "float",
-                    "verifier": "date"
+		            "recipient":  "string",
+		            "sender":  "string",
+		            "url":  "string",
+		            "ver": "date"
 		        }
 		    ]
 		}

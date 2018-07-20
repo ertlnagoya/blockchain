@@ -20,31 +20,30 @@ import time
 import os
 import subprocess
 
-
+# Default address
 HOST = "0.0.0.0"
 NOMAL_PORT = 33844
 VALID_PORT = 33845
-NODE_ADDRESS = 'localhost'
+NODE_ADDRESS = 'localhost'  # blockchain node
 NODE_PORT = 5000
 
 # To vender server
 SERVER_PORT = 33846
-TIME = 300  # 5min
+TIME = 300  # 5min 86400 iday
 
-# For git
+# For git. Default URL.
 URL = 'git@github.com:ertlnagoya/Update_Test.git'
 DIRECTORY = 'repo'
 
-# For test
+# For test.
 VER = "0"
 # HASH = "f52d885484f1215ea500a805a86ff443"
-URL = 'git@github.com:ertlnagoya/Update_Test.git'
 FILE_NAME = 'Update_Test'
 
-# Generate a globally unique address
+# Generate a globally unique address(ID).
 sender = str(uuid4()).replace('-', '')
 
-# RSA
+# RSA for client-server connection.
 start = time.time()*1000
 random_func = Random.new().read
 rsa = RSA.generate(2048, random_func)
@@ -76,7 +75,7 @@ def git_pull():
     repo = git.Repo(DIRECTORY)
     o = repo.remotes.origin
     o.pull()
-    print(o)
+    print("git pull:", o)
 
 
 def get_git_revision_hash(dir):
@@ -134,11 +133,13 @@ def make_payload(sender, NODE, INFO, r):
 def new_transaction(address):
     address_nt = 'https://' + address + '/transactions/new'
     data_nt = {
-        "counter": 1,
-        # "merkle tree": ,
+        "counter": 1,  # TODO
+        # "merkle tree": 
+        "success": 1,
         "sender": sender,
         "recipient": "someone-other-address",
         # "digital signature": ,
+        "ver": VER,
         "verifier": HASH
     }
     headers_nt = {

@@ -106,17 +106,15 @@ def make_payload(sender, NODE, INFO, r):
 
 
 def client(HOST, public_key, private_key):
-    # Randam number
+    # Randam number generation
     r = random.randrange(1000)
 
-    # conection
+    # conection to server
     soc = socket(AF_INET)
     soc.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    #soc.connect((HOST, NOMAL_PORT))
-    #print("[*] connecting to %s:%s" % (HOST, NOMAL_PORT))
     soc.connect((HOST, VALID_PORT))
     print("[*] connecting to %s:%s" % (HOST, VALID_PORT))
-    #verbose_ping(sys.argv[12)
+    # verbose_ping(sys.argv[12)
 
     soc.sendall(public_key)
     payload = soc.recv(1024)
@@ -135,7 +133,7 @@ def client(HOST, public_key, private_key):
     payload = soc.recv(1024)
     cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
     payload = str(cipher.decrypt(payload))
-    print("[*] receive,decode & decrypt payload: ", payload)
+    print("[*] receive, decode & decrypt payload: ", payload)
     # public_server_key = tuple_key(payload)
     # print("[*] public_server_key", public_server_key)
 
@@ -188,7 +186,6 @@ def client(HOST, public_key, private_key):
         soc.close()
 
         git_pull()
-
     
     soc.close()
     print("[*] Finish!!")
