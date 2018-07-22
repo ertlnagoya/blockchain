@@ -16,6 +16,7 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA256
 import time
+from argparse import ArgumentParser
 
 
 HOST = "0.0.0.0"
@@ -193,16 +194,11 @@ def client(HOST, public_key, private_key):
 
 if __name__ == '__main__':
     data = []
-    if len(sys.argv) == 2:
-        HOST = argv[1]
-    else:
-        if len(sys.argv) == 3:
-            NOMAL_PORT = int(argv[2])
-            print("[*] Port: ", VALID_PORT)
-        else:
-            print("[*] Default port:", VALID_PORT)
-            # print("Error: ")
-            # sys.exit()
+
+    parser = ArgumentParser()
+    parser.add_argument('-p', '--port', default=33845, type=int, help='port to listen on')
+    args = parser.parse_args()
+    VALID_PORT = args.port
 
     if os.path.isdir("./repo"):
         print("[*] already exist.")

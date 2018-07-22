@@ -19,6 +19,7 @@ from Crypto.Cipher import PKCS1_OAEP
 import time
 import os
 import subprocess
+from argparse import ArgumentParser
 
 # Default address
 HOST = "0.0.0.0"
@@ -103,7 +104,7 @@ def recv_until(c, delim="\n"):
 
 def randam(payload, r_before):
     '''
-    return randam nuber from payload.
+    verify randam number. return randam nuber from payload.
     '''
     data = []
     payload = str(payload).replace("b'", "").replace("'", "")
@@ -249,7 +250,7 @@ def client():
     # print(dict)
     for key in dict['data']:
         VER = key['ver']
-        HASH = key['hash']
+        #HASH = key['hash']
 
     # client to vender server
     # print("現在のスレッドの数: ", str(threading.activeCount()))
@@ -267,13 +268,13 @@ def client():
 
     soc.sendall(public_key)
     payload = soc.recv(1024)
-    print("[client] public_key:", payload)
+    print("[client] send public_key: ", payload)
     public_server_key = payload
 
     # req_vercheck
     payload = make_payload(sender, "nomalnode", VER, r)
     cipher = PKCS1_OAEP.new(RSA.importKey(public_server_key))
-    print("[client] First send", payload)
+    print("[client] First send: ", payload)
     payload = cipher.encrypt(payload)
     soc.sendall(payload)
 
@@ -292,7 +293,7 @@ def client():
         print("[client] Version check: req = res!")
         payload = make_payload(sender, "nomalnode", HASH, r)
         cipher = PKCS1_OAEP.new(RSA.importKey(public_server_key))
-        print("[client] Second send", payload)
+        print("[client] Second send: ", payload)
         payload = cipher.encrypt(payload)
         soc.sendall(payload)
 
@@ -301,12 +302,12 @@ def client():
         payload = soc.recv(1024)
         cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
         payload = str(cipher.decrypt(payload))
-        print("[client] Second receive from server 2: ", payload)
+        print("[client] Second receive from server: ", payload)
         data = payload.split("-")
         # print("c1-1-8: " + data[3])
 
         if str(HASH) == str(data[2]):
-            print("[client] SAME!!")
+            print("[client] SAME!! Download is unnecessary.")
         else:
             print("[client] The hash is not latest! Download start!")
 
@@ -326,7 +327,7 @@ def client():
         r = randam(payload, r - 3)
         payload = make_payload(sender, "nomalnode", 'Download', r)
         cipher = PKCS1_OAEP.new(RSA.importKey(public_server_key))
-        print("[client] First send", payload)
+        print("[client] First send: ", payload)
         payload = cipher.encrypt(payload)
         soc.sendall(payload)
 
@@ -335,7 +336,7 @@ def client():
         payload = soc.recv(1024)
         cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
         payload = str(cipher.decrypt(payload))
-        print("[client] Second receive from server 2: " + str(payload))
+        print("[client] Second receive from server: " + str(payload))
         data = payload.split("-")
         soc.close()
 
@@ -469,12 +470,10 @@ while True:
     key = []
     public_client_key = ''
 
-    if len(sys.argv) == 2:
-        VALID_PORT = argv[1]
-        print("[server] Port: ", VALID_PORT)
-    else:
-        print("[server] Default port:", VALID_PORT)
-        # sys.exit()
+    parser = ArgumentParser()
+    parser.add_argument('-p', '--port', default=33846, type=int, help='port to listen on')
+    args = parser.parse_args()
+    SERVER_PORT = args.port
 
     # open csv
     dict = open_csv()

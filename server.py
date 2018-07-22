@@ -16,14 +16,14 @@ from Crypto import Random
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA256
+import threading
 
 
 HOST = "0.0.0.0"
-VALID_PORT = 33845
 NODE_ADDRESS = 'localhost'
 NODE_PORT = 5000
 
-# To vender server
+# vender server
 SERVER_PORT = 33846
 TIME = 300 # 5min
 
@@ -205,27 +205,12 @@ def verify(address):
     print("[*] Blockchain version: " + str(ver))
 
 
+data = []
+key = []
+public_client_key = ''
 
 
-while True:
-    data = []
-    key = []
-    public_client_key = ''
-
-    if len(sys.argv) == 2:
-        SERVER_PORT = argv[1]
-        print("[*] Port: ", SERVER_PORT)
-    else:
-        print("[*] Default port:", SERVER_PORT)
-        # sys.exit()
-
-    # conection
-    s = socket(AF_INET)
-    s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    print("[*] waiting for connection at %s:%s" % (HOST, SERVER_PORT))
-    s.bind((HOST, SERVER_PORT))
-    s.listen(1)
-    conn, addr = s.accept()
+def server(clientsock, addr):
     print("[*] connection from: %s:%s" % addr)
 
     while True:
@@ -282,3 +267,23 @@ while True:
         print("[*] Finish!!")
 
     conn.close()
+
+while True:
+    # conection
+    s = socket(AF_INET)
+    s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    print("[*] waiting for connection at %s:%s" % (HOST, SERVER_PORT))
+    s.bind((HOST, SERVER_PORT))
+    s.listen(1)
+
+    while True:
+        conn, addr = s.accept()
+        print("[server] connection from: %s:%s" % addr)
+        handle_thread = threading.Thread(target=server,
+                                         args=(conn, addr),
+                                         daemon=True)
+        handle_thread.start()
+ 
+    conn.close()
+
+
