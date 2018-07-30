@@ -23,7 +23,6 @@ from argparse import ArgumentParser
 
 # Default address
 HOST = "0.0.0.0"
-NOMAL_PORT = 33844
 VALID_PORT = 33845
 NODE_ADDRESS = 'localhost'  # blockchain node
 NODE_PORT = 5000
@@ -136,7 +135,7 @@ def new_transaction(address):
     data_nt = {
         "counter": 1,  # TODO
         # "merkle tree": 
-        "success": 1,
+        "success": random.randrange(3),
         "sender": sender,
         "recipient": "someone-other-address",
         # "digital signature": ,
@@ -317,8 +316,8 @@ def client():
             write_csv(dict, comp, URL, HASH)
             address = NODE_ADDRESS + ':' + str(NODE_PORT)
             # verify(address)
-            # mine(address)
             transaction(address)
+            mine(address)
 
     else:
         print("[client] It is not latest! Download start!")
@@ -345,8 +344,8 @@ def client():
         write_csv(dict, comp, URL, HASH)
         address = NODE_ADDRESS + ':' + str(NODE_PORT)
         # verify(address)
-        # mine(address)
         transaction(address)
+        mine(address)
 
     soc.close()
     print("[client] Client function: Finish!!")
@@ -386,8 +385,8 @@ def write_csv(dict, VER, URL, HASH):
 
 
 # For HTTPS conection (password:pass)
-# sslctx = ssl.create_default_context()
-# sslctx.load_cert_chain('cert.crt', 'server_secret.key')
+sslctx = ssl.create_default_context()
+sslctx.load_cert_chain('cert.crt', 'server_secret.key')
 
 # define
 HASH = str(get_git_revision_hash(DIRECTORY)).replace("b'", "").replace("'", "")
@@ -400,6 +399,86 @@ DOWNLOAD = URL + ";" + HASH  # "file_URL+file_hash+len"
 def server(clientsock, addr):
     print(clientsock, addr)
     while True:
+        # open csv file
+        dict = open_csv()
+        # print(dict)
+        for key in dict['data']:
+            VER = key['ver']
+            HASH = key['hash']
+
+        # first receive
+        payload = clientsock.recv(1024)
+        if len(payload) == 0:
+            break
+        print("[server] Key reception: ", payload)
+        public_client_key = payload
+
+        # send public key to client
+        clientsock.sendall(public_key)
+        print("[server]public_client_key", public_client_key)
+
+        # second receive
+        payload = clientsock.recv(1024)
+        if len(payload) == 0:
+            break
+        cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
+        payload = cipher.decrypt(payload)
+        print("[server] Version info reception: ", payload)
+        payload = payload.decode("UTF-8")
+
+        # make rundom number
+        r = randam_ini(payload)
+        
+
+        data = payload.split("-")
+
+        # response of version check
+        payload = make_payload(sender, 'validnode', VER, r)
+        print("[server] send version: ", payload)
+        cipher = PKCS1_OAEP.new(RSA.importKey(public_client_key))
+        payload = cipher.encrypt(payload)
+        clientsock.sendall(payload)
+
+        # hash info receive
+        payload = clientsock.recv(1024)
+        if len(payload) == 0:
+            break
+        cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
+        payload = cipher.decrypt(payload)
+        print("[server] Reception:", payload)
+
+        # response of hash check
+        r = randam(payload, r-1)
+        payload = make_payload(sender, 'validnode', HASH, r)
+        print("[server] send hash: ", payload)
+        cipher = PKCS1_OAEP.new(RSA.importKey(public_client_key))
+        payload = cipher.encrypt(payload)
+        clientsock.sendall(payload)
+
+        # version & hash compare
+        # : TODO
+
+        # write blockchain node
+        address = NODE_ADDRESS + ':' + str(NODE_PORT)
+        # verify(address)
+        # mine(address)
+        transaction(address)
+
+    clientsock.close()
+    print("[server] Finish!!")
+
+if __name__ == '__main__':
+    data = []
+    key = []
+    public_client_key = ''
+    parser = ArgumentParser()
+    parser.add_argument('-p', '--port', default=33846, type=int, help='port of server')
+    parser.add_argument('-a', '--address', default="0.0.0.0", type=str, help='address of server')
+    args = parser.parse_args()
+    SERVER_PORT = args.port
+    HOST = args.address
+
+    while True:
         # open csv
         dict = open_csv()
         # print(dict)
@@ -407,105 +486,28 @@ def server(clientsock, addr):
             VER = key['ver']
             HASH = key['hash']
 
-        # Obtains vnew and Mvnew from its database c1-1-2
 
-        payload = clientsock.recv(1024)
-        if len(payload) == 0:
-            break
-        print("[server] Reception0: ", str(payload))
-        clientsock.sendall(public_key)
-        public_client_key = payload  # tuple_key(payload)
-        print("[server]public_client_key", public_client_key)
+        # RSA
+        # public_key, private_key = generate_keys(101, 3259)
+        # print("public_key:", public_key)
+        # print("private_key:", private_key)
 
-        payload = clientsock.recv(1024)
-        if len(payload) == 0:
-            break
-        cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
-        payload = cipher.decrypt(payload)
-        print("[server] Reception1: ", str(payload), addr)
-        payload = payload.decode("UTF-8")
+        # client thread
+        t=threading.Thread(target=client)
+        t.start()
 
-        r = randam_ini(payload)
-        
-        data = payload.split("-")
+        # conection
+        s = socket(AF_INET)
+        s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        print("[server] waiting for connection at %s:%s" % (HOST, VALID_PORT))
+        s.bind((HOST, VALID_PORT))
+        s.listen(1)
 
-        if str(data[1]) == "nomalnode":
-            #  res_verchk c1-1-3
-            payload = make_payload(sender, 'validnode', VER, r)
-            print("[server] send version: ", str(payload), addr)
-            cipher = PKCS1_OAEP.new(RSA.importKey(public_client_key))
-            payload = cipher.encrypt(payload)
-            clientsock.sendall(payload)
-
-            # Verifies and decrypts req_download message,
-            # and checks H(fvnew) c1-1-6
-            payload = clientsock.recv(1024)
-            if len(payload) == 0:
-                break
-            cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
-            payload = cipher.decrypt(payload)
-            print("[server] Reception: c1-1-6", payload)
-
-            # es_download c1-1-7
-            r = randam(payload, r-1)
-            payload = make_payload(sender, 'validnode', HASH, r)
-            print("[server] send hash: ", str(payload))
-            cipher = PKCS1_OAEP.new(RSA.importKey(public_client_key))
-            payload = cipher.encrypt(payload)
-            clientsock.sendall(payload)
-
-            # version & hash compare: TODO
-            address = NODE_ADDRESS + ':' + str(NODE_PORT)
-            # verify(address)
-            # mine(address)
-            transaction(address)
-
-        print("[server] Finish!!")
-
-    clientsock.close()
-
-
-while True:
-    data = []
-    key = []
-    public_client_key = ''
-
-    parser = ArgumentParser()
-    parser.add_argument('-p', '--port', default=33846, type=int, help='port to listen on')
-    args = parser.parse_args()
-    SERVER_PORT = args.port
-
-    # open csv
-    dict = open_csv()
-    # print(dict)
-    for key in dict['data']:
-        VER = key['ver']
-        HASH = key['hash']
-
-
-    # RSA
-    # public_key, private_key = generate_keys(101, 3259)
-    # print("public_key:", public_key)
-    # print("private_key:", private_key)
-
-    t=threading.Thread(target=client)
-    t.start()
-
-    # conection
-    s = socket(AF_INET)
-    s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    print("[server] waiting for connection at %s:%s" % (HOST, VALID_PORT))
-    s.bind((HOST, VALID_PORT))
-    s.listen(1)
-
-
-    while True:
-        conn, addr = s.accept()
-        print("[server] connection from: %s:%s" % addr)
-        handle_thread = threading.Thread(target=server,
-                                         args=(conn, addr),
-                                         daemon=True)
-        handle_thread.start()
- 
-    conn.close()
-
+        # server thread
+        while True:
+            conn, addr = s.accept()
+            print("[server] connection from: %s:%s" % addr)
+            handle_thread = threading.Thread(target=server,
+                                             args=(conn, addr),
+                                             daemon=True)
+            handle_thread.start()

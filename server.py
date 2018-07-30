@@ -205,28 +205,23 @@ def verify(address):
     print("[*] Blockchain version: " + str(ver))
 
 
-data = []
-key = []
-public_client_key = ''
-
-
 def server(clientsock, addr):
     print("[*] connection from: %s:%s" % addr)
 
     while True:
+        # receive public key
         payload = conn.recv(1024)
         if len(payload) == 0:
             break
-        print("[*] Reception0: ", str(payload))
         conn.sendall(public_key)
-        public_client_key = payload  # tuple_key(payload)
-        print("public_client_key", public_client_key)
+        public_client_key = payload
+        print("Receive public key of client", public_client_key)
 
-        # Obtains vnew and Mvnew from its database c1-1-2
+        # receive version info
         payload = conn.recv(1024)
         if len(payload) == 0:
             break
-        print("[*] Reception1: ", str(payload))
+        print("[*] receive version: ", payload)
         cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
         payload = cipher.decrypt(payload)
 
@@ -234,41 +229,44 @@ def server(clientsock, addr):
         r = randam_ini(payload)
         data = payload.split("-")
 
-        if str(data[1]) == "nomalnode":
-            #  res_verchk c1-1-3
-            payload = make_payload(sender, 'validnode', VER, r)
-            cipher = PKCS1_OAEP.new(RSA.importKey(public_client_key))
-            payload = cipher.encrypt(payload)
-            conn.sendall(payload)
+        # send verion info
+        payload = make_payload(sender, 'validnode', VER, r)
+        cipher = PKCS1_OAEP.new(RSA.importKey(public_client_key))
+        payload = cipher.encrypt(payload)
+        conn.sendall(payload)
 
-            # Verifies and decrypts req_download message, and checks H(fvnew) c1-1-6
-            payload = conn.recv(1024)
-            if len(payload) == 0:
-                break
-            cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
-            payload = cipher.decrypt(payload)
-            print("[*] Reception: c1-1-6", payload)
+        # receive hash info
+        payload = conn.recv(1024)
+        if len(payload) == 0:
+            break
+        cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
+        payload = cipher.decrypt(payload)
+        print("[*] Reception: c1-1-6", payload)
 
-            # es_download c1-1-7
-            r = randam(payload, r-1)
-            payload = make_payload(sender, 'validnode', HASH, r)
-            cipher = PKCS1_OAEP.new(RSA.importKey(public_client_key))
-            payload = cipher.encrypt(payload)
-            conn.sendall(payload)
+        # send hash info
+        r = randam(payload, r-1)
+        payload = make_payload(sender, 'validnode', HASH, r)
+        cipher = PKCS1_OAEP.new(RSA.importKey(public_client_key))
+        payload = cipher.encrypt(payload)
+        conn.sendall(payload)
 
-            # version & hash compare
+        # version & hash compare
 
-            # address = NODE_ADDRESS + ':' + str(NODE_PORT)
-            # verify(address)
-            # mine(address)
-            # transaction(address)
-            print("waiting...")
+        # address = NODE_ADDRESS + ':' + str(NODE_PORT)
+        # verify(address)
+        # mine(address)
+        # transaction(address)
+        print("waiting...")
 
         print("[*] Finish!!")
 
     conn.close()
 
 while True:
+    data = []
+    key = []
+    public_client_key = ''
+
     # conection
     s = socket(AF_INET)
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)

@@ -58,7 +58,7 @@ def create_index():
 		        {
                     "counter": "data",  # TODO
                     # "merkle tree": 
-                    "success": "data",
+                    "success": "data", 
                     "sender": "string",
                     "recipient":  "string",
                     # "digital signature": ,
@@ -74,7 +74,8 @@ def create_index():
 
 def add(address):
     data = json.loads(chain(address))
-    print(json.dumps(data, sort_keys = True, indent = 4))
+    #print(json.dumps(data, sort_keys = True, indent = 4))
+    print("data[1]", data[0])
     '''
     try:
         timestamp, capture = data.split(" ", 1)

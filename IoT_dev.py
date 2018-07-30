@@ -122,54 +122,49 @@ def client(HOST, public_key, private_key):
     print("[*] send public_key:", payload)
     public_server_key = payload
 
-    # req_vercheck c1-1-1
+    # send vercsion info
     payload = make_payload(sender, "nomalnode", VER, r)
     cipher = PKCS1_OAEP.new(RSA.importKey(public_server_key))
     print("[*] send version: ", payload)
     payload = cipher.encrypt(payload)
-
     soc.sendall(payload)
 
-    # Generates verifier H(fv) after checking res_verchk message c1-1-4
+    # receive version infp
     payload = soc.recv(1024)
     cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
     payload = str(cipher.decrypt(payload))
     print("[*] receive, decode & decrypt payload: ", payload)
-    # public_server_key = tuple_key(payload)
-    # print("[*] public_server_key", public_server_key)
 
     data = payload.split("-")
     r = randam(payload, r - 1)
     comp = float(data[2])
 
     if float(VER) == comp:
-        # req_verification 
+        # send hash info
         print("[*] Version check: req = res!")
         payload = make_payload(sender, "nomalnode", HASH, r)
-        print("[*] sending hash: ", payload)
+        print("[*] send hash: ", payload)
         cipher = PKCS1_OAEP.new(RSA.importKey(public_server_key))
         payload = cipher.encrypt(payload)
         soc.sendall(payload)
 
-        # Verifies and decrypts res_verification message,
-        # and compares H(fv) and H(fvnew) 
+        # receive hash info
         payload = soc.recv(1024)
         cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
         payload = str(cipher.decrypt(payload))
         print("[*] receive hash: ",str(payload))
         data = payload.split("-")
-        # print("c1-1-8: " + data[3])
 
         if str(HASH) == str(data[2]):
-            print("[*] SAME!!")
+            print("[*] SAME!! Download is unnecessary.")
         else:
-            print("[*] Download start!")
+            print("[*] The hash is not latest! Download start!")
             git_pull()
 
     else:
         print("[*] It is not latest! Download start!")
 
-        # req_download c1-2-5
+        # send download info
         r = randam(payload, r - 3)
         payload = make_payload(sender, "nomalnode", 'Download', r)
         cipher = PKCS1_OAEP.new(RSA.importKey(public_server_key))
@@ -177,8 +172,7 @@ def client(HOST, public_key, private_key):
         payload = cipher.encrypt(payload)
         soc.sendall(payload)
 
-        # Downloads and installs the latest firmware file 
-        # after checking res_download message c1-2-8
+        # receive download info
         payload = soc.recv(1024)
         cipher = PKCS1_OAEP.new(RSA.importKey(private_key))
         payload = str(cipher.decrypt(payload))
@@ -197,13 +191,15 @@ if __name__ == '__main__':
 
     parser = ArgumentParser()
     parser.add_argument('-p', '--port', default=33845, type=int, help='port to listen on')
+    parser.add_argument('-a', '--address', default="0.0.0.0", type=str, help='address of server')
     args = parser.parse_args()
-    VALID_PORT = args.port
+    SERVER_PORT = args.port
+    HOST = args.address
 
     if os.path.isdir("./repo"):
-        print("[*] already exist.")
+        print("[*] Git repository already exist.")
     else:
-        print("[*] make repo")
+        print("[*] make git repository")
         git_clone()
 
     client(HOST, public_key, private_key)

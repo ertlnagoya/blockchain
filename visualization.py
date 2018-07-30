@@ -56,10 +56,14 @@ def create_index():
 		    "proof": "date",
 		    "transactions": [
 		        {
-		            "recipient":  "string",
-		            "sender":  "string",
-		            "url":  "string",
-		            "ver": "date"
+                    "counter": "data",  # TODO
+                    # "merkle tree": 
+                    "state": "data", 
+                    "sender": "string",
+                    "recipient":  "string",
+                    # "digital signature": ,
+                    "ver": "float",
+                    "verifier": "date"
 		        }
 		    ]
 		}
@@ -70,6 +74,8 @@ def create_index():
 
 def add(address):
     data = json.loads(chain(address))
+    #data = data[1:]
+    #data =data[:-1]
     print(json.dumps(data, sort_keys = True, indent = 4))
     '''
     try:
@@ -79,23 +85,24 @@ def add(address):
 
     timestamp = float(timestamp)
 	'''
-    try:
+    for k in data:
+        # try:
         # row_timestamp=datetime.datetime.fromtimestamp(timestamp) - datetime.timedelta(hours=9)
         # timestamp = row_timestamp.strftime("%Y-%m-%dT%H:%M:%SZ")
         print("[*]write")
         
-        res = es.index(index="blockchain", doc_type="block", body=data)
+        res = es.index(index="blockchain", doc_type="block", body=k)
         print(res)
 
         res = es.search(index="captures", body={"query": {"match_all": {}}})
         print("Got %d Hits:" % res['hits']['total'])
-    except Exception as e:
-        print(e)
-        time.sleep(1)
-    return 
+        # except Exception as e:
+            # print(e)
+            # time.sleep(1)
+        # return 
 
 def chain(address):
-    address_c = 'https://' + address + '/chain'
+    address_c = 'https://' + address + '/chain_visualize'
     req = urllib.request.Request(address_c)
     try:
         with urllib.request.urlopen(req) as res:

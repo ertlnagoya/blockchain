@@ -123,7 +123,7 @@ class Blockchain:
         self.chain.append(block)
         return block
 
-    def new_transaction(self, counter, success, sender, recipient, ver, verifier):
+    def new_transaction(self, counter, state, sender, recipient, ver, verifier):
         """
         Creates a new transaction to go into the next mined Block
 
@@ -136,7 +136,7 @@ class Blockchain:
         self.current_transactions.append({
             "counter": counter,  # TODO
             # "merkle tree": 
-            "success": success,
+            "state": state,
             "sender": sender,
             "recipient": recipient,
             # "digital signature": ,
@@ -224,7 +224,7 @@ def mine():
     blockchain.new_transaction(
         counter=1,
         # "merkle tree": ,
-        success = 1,
+        state = 0,
         sender="0",
         recipient=node_identifier,
         # "digital signature": ,
@@ -251,12 +251,12 @@ def new_transaction():
     values = request.get_json()
 
     # Check that the required fields are in the POST'ed data
-    required = ['counter', 'success', 'sender', 'recipient', 'ver', 'verifier']
+    required = ['counter', 'state', 'sender', 'recipient', 'ver', 'verifier']
     if not all(k in values for k in required):
         return 'Missing values', 400
 
     # Create a new Transaction
-    index = blockchain.new_transaction(values['counter'], values['success'],values['sender'], values['recipient'], values['ver'], values['verifier'])
+    index = blockchain.new_transaction(values['counter'], values['state'],values['sender'], values['recipient'], values['ver'], values['verifier'])
 
     response = {'message': f'Transaction will be added to Block {index}'}
     return jsonify(response), 201
@@ -270,6 +270,10 @@ def full_chain():
     }
     return jsonify(response), 200
 
+@app.route('/chain_visualize', methods=['GET'])
+def full_chain_visualize():
+    response = blockchain.chain
+    return jsonify(response), 200
 
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
