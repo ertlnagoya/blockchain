@@ -29,7 +29,7 @@ NODE_PORT = 5000
 
 # To vender server
 SERVER_PORT = 33846
-TIME = 300  # 5min 86400 iday
+TIME = 300  # =5min, 86400 = a day
 
 # For git. Default URL.
 URL = 'git@github.com:ertlnagoya/Update_Test.git'
@@ -135,7 +135,7 @@ def new_transaction(address):
     data_nt = {
         "counter": 1,  # TODO
         # "merkle tree": 
-        "success": random.randrange(3),
+        "state": random.randrange(3),
         "sender": sender,
         "recipient": "someone-other-address",
         # "digital signature": ,
@@ -485,12 +485,6 @@ if __name__ == '__main__':
         for key in dict['data']:
             VER = key['ver']
             HASH = key['hash']
-
-
-        # RSA
-        # public_key, private_key = generate_keys(101, 3259)
-        # print("public_key:", public_key)
-        # print("private_key:", private_key)
 
         # client thread
         t=threading.Thread(target=client)
