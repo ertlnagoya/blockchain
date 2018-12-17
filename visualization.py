@@ -37,69 +37,6 @@ URL = "http://localhost:9200"
 INDEX_URL = URL + "/blockchain"
 TYPE_URL = INDEX_URL + "/block"
 
-def delete_index():
-    """Delete an index in elastic search."""
-    requests.delete(INDEX_URL)
-
-def create_index():
-    """Create an index in elastic search with timestamp enabled."""
-    try:
-        print("[*] creating an index in elasticsearch")
-        r = requests.put(INDEX_URL)
-        if "index_already_exists_exception" in r.text:
-            print("[*] index already exists")
-            return
-        mapping = {
-		    "index": "date",
-		    "message": "string",
-		    "previous_hash":  "string",
-		    "proof": "date",
-		    "transactions": [
-		        {
-                    "counter": "data",  # TODO
-                    # "merkle tree": 
-                    "state": "data", 
-                    "sender": "string",
-                    "recipient":  "string",
-                    # "digital signature": ,
-                    "ver": "float",
-                    "verifier": "date"
-		        }
-		    ]
-		}
-        r = requests.put(TYPE_URL + "/_mapping", data=json.dumps(mapping))
-        print("r: " + r.text)
-    except:
-        raise Exception("Elasticsearch is not running")
-
-def add(address):
-    data = json.loads(chain(address))
-    #data = data[1:]
-    #data =data[:-1]
-    print(json.dumps(data, sort_keys = True, indent = 4))
-    '''
-    try:
-        timestamp, capture = data.split(" ", 1)
-    except Exception as e:
-        return
-
-    timestamp = float(timestamp)
-	'''
-    for k in data:
-        # try:
-        # row_timestamp=datetime.datetime.fromtimestamp(timestamp) - datetime.timedelta(hours=9)
-        # timestamp = row_timestamp.strftime("%Y-%m-%dT%H:%M:%SZ")
-        print("[*]write")
-        
-        res = es.index(index="blockchain", doc_type="block", body=k)
-        print(res)
-
-        res = es.search(index="captures", body={"query": {"match_all": {}}})
-        print("Got %d Hits:" % res['hits']['total'])
-        # except Exception as e:
-            # print(e)
-            # time.sleep(1)
-        # return 
 
 def chain(address):
     address_c = 'https://' + address + '/chain_visualize'
@@ -115,6 +52,102 @@ def chain(address):
     except urllib.error.URLError as err:
         print(err.reason)
         return -1
+
+
+def delete_index():
+    """Delete an index in elastic search."""
+    requests.delete(INDEX_URL)
+
+def create_index():
+    """Create an index in elastic search with timestamp enabled."""
+    try:
+        print("[*] creating an index in elasticsearch")
+        r = requests.put(INDEX_URL)
+        if "index_already_exists_exception" in r.text:
+            print("[*] index already exists")
+            return
+        mapping = {	    
+            "index": "data",
+            "@timestamp": {
+                        "type": "date",
+                        "format":"YYYY-MM-dd HH:mm:ss"
+                    },
+		    "message": "string",
+		    "previous_hash":  "string",
+		    "proof": "data",
+		    "transactions": [
+		          {
+                    # "counter": "data",  # TODO
+                    # "merkle tree": 
+            "sender": "string",
+            "recipient":  "string",
+            "state": "string", 
+            # "digital signature": ,
+            "ver": "float",
+            "verifier": "string"
+		       }
+		    ]
+		}
+        #r = requests.put(TYPE_URL + "/_mapping", data=json.dumps(mapping))
+        # print("r: " + r.text)
+    except:
+        raise Exception("Elasticsearch is not running")
+
+def change(data):
+    string = ""
+    try:
+        string.join(data)
+        string = string.replace('"transactions": [', '')
+        data = string.split("!!")
+    except Exception as e:
+        print(e)
+    return data
+
+def add(address):
+    data = json.loads(chain(address))
+    data = data[1:]
+    data = data[:-1]
+    #with open("000.txt") as f:
+     #   data = json.loads(f.read())
+     #   print(type(data))
+    #print(json.dumps(data, sort_keys = True, indent = 4))
+    
+    #data = change(data)
+
+    print(json.dumps(data, sort_keys = True, indent = 4))
+
+    #timestamp = time.time()
+    #try:
+    #    timestamp, capture = data.split(" ", 1)
+    #except Exception as e:
+    #    return
+
+    #timestamp = float(timestamp)
+    print("[*]write")
+
+    
+    for k in data:
+        try:
+            #row_timestamp=datetime.datetime.fromtimestamp(timestamp)# - datetime.timedelta(hours=9)
+            #timestamp = row_timestamp.strftime("%Y-%m-%dT%H:%M:%SZ")
+            #print("[*]write")
+
+            #l = '"timestamp":' + timestamp + ','
+
+            #l = json.loads(l + k)
+            # l = l + json.dumps(k)
+
+            res = es.index(index="blockchain", doc_type="block", body=k)
+            print(res)
+
+            #res = es.search(index="captures", body={"query": {"match_all": {}}})
+            #print("Got %d Hits:" % res['hits']['total'])
+        except Exception as e:
+            print(e)
+            time.sleep(1)
+        # return 
+ 
+
 
 delete_index()
 create_index()

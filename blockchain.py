@@ -9,7 +9,7 @@ from uuid import uuid4
 import ssl
 import requests
 from flask import Flask, jsonify, request
-
+import datetime
 
 class Blockchain:
     def __init__(self):
@@ -108,10 +108,13 @@ class Blockchain:
         :param previous_hash: Hash of previous Block
         :return: New Block
         """
+        timestamp = time()
+        timestamp = datetime.datetime.fromtimestamp(timestamp)# - datetime.timedelta(hours=9)
+        timestamp = timestamp.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         block = {
             'index': len(self.chain) + 1,
-            'timestamp': time(),
+            '@timestamp': timestamp,
             'transactions': self.current_transactions,
             'proof': proof,
             'previous_hash': previous_hash or self.hash(self.chain[-1]),
@@ -123,7 +126,7 @@ class Blockchain:
         self.chain.append(block)
         return block
 
-    def new_transaction(self, counter, state, sender, recipient, ver, verifier):
+    def new_transaction(self, state, sender, recipient, ver, verifier):
         """
         Creates a new transaction to go into the next mined Block
 
@@ -134,7 +137,7 @@ class Blockchain:
         :return: The index of the Block that will hold this transaction
         """
         self.current_transactions.append({
-            "counter": counter,  # TODO
+            # "counter": counter,  # TODO
             # "merkle tree": 
             "state": state,
             "sender": sender,
@@ -225,14 +228,14 @@ def mine():
     # We must receive a reward for finding the proof.
     # The sender is "0" to signify that this node has mined a new coin.
     blockchain.new_transaction(
-        counter=1,
+        # counter=1,
         # "merkle tree": ,
-        state = 0,
-        sender="0",
+        state="minor",
+        sender="",
         recipient=node_identifier,
         # "digital signature": ,
-        ver= 0,
-        verifier="HASH"
+        ver=0,
+        verifier=""
     )
 
     # Forge the new Block by adding it to the chain
@@ -242,6 +245,7 @@ def mine():
     response = {
         'message': "New Block Forged",
         'index': block['index'],
+        'timestamp': block['@timestamp'],
         'transactions': block['transactions'],
         'proof': block['proof'],
         'previous_hash': block['previous_hash'],
@@ -254,12 +258,12 @@ def new_transaction():
     values = request.get_json()
 
     # Check that the required fields are in the POST'ed data
-    required = ['counter', 'state', 'sender', 'recipient', 'ver', 'verifier']
+    required = ['state', 'sender', 'recipient', 'ver', 'verifier']
     if not all(k in values for k in required):
         return 'Missing values', 400
 
     # Create a new Transaction
-    index = blockchain.new_transaction(values['counter'], values['state'], values['sender'], values['recipient'], values['ver'], values['verifier'])
+    index = blockchain.new_transaction(values['state'], values['sender'], values['recipient'], values['ver'], values['verifier'])
 
     response = {'message': f'Transaction will be added to Block ' + str(index)}
     return jsonify(response), 201
